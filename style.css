@@ -1,0 +1,87 @@
+body {
+    background-color: #222;
+    padding: 0;
+    margin: 0;
+    color: #fff;
+}
+.gbs {
+    display: flex;
+    width: 80%;
+    height: 80vb;
+}
+.gb {
+    border: 2px solid #fff;
+    width: 50%;
+    display: grid;
+    grid-template-columns: repeat(10, auto);
+    grid-gap: 0;
+}
+.cell-1 {
+    border: 1px solid grey;
+    padding: 10px;
+}
+.cell-2 {
+    border: 1px solid grey;
+    padding: 10px;
+}
+.cell-1:hover {
+    background-color: #333;
+}
+.cell-2:hover {
+    background-color: #333;
+}
+.left-overlay {
+    position: absolute;
+    width: 50%;
+    height: 100%;
+    z-index: 5;
+    background-color: rgba(20, 20, 20, 0.5);
+    left: 0;
+}
+.right-overlay {
+    position: absolute;
+    width: 50%;
+    height: 100%;
+    z-index: 5;
+    background-color: rgba(20, 20, 20, 0.5);
+    right: 0;
+}
+
+
+.welcomeMenu {
+    display: block;
+}
+.modeBtns {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+.btn {
+    border: none;
+    padding: 15px;
+    margin: 15px;
+    min-width: 70px;
+}
+.unvisible {
+    display: none;
+}
+.active {
+    background-color: red;
+}
+.ship {
+    width: 10px;
+    height: 10px;
+    background-color: red;
+    margin: 10px;
+}
+.ships {
+    display: flex;
+}
+.selectedShip {
+    border: 2px solid #fff;
+}
+.placedShip {
+    background-color: black;
+    pointer-events: none;
+}
