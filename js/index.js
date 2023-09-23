@@ -1,9 +1,10 @@
 class Ship {
-    constructor(lenght, key, hits = 0, sunkState = false){
+    constructor(lenght, key, hits = 0, sunkState = false, coords = []){
         this.length = lenght;
         this.hits = hits;
         this.sunkState = sunkState;
         this.key = key;
+        this.coords = coords
     }
     hit() {
         this.hits++;
@@ -14,6 +15,9 @@ class Ship {
         return true;
       }
       return false;
+    }
+    setCoords(setOfCoords) {
+      this.coords.push(setOfCoords)
     }
 }
 class Gameboard {
@@ -38,12 +42,18 @@ class Gameboard {
     if (orient == 0) {
       if (y + l > 10) return 1;
       for(let i = 0; i < l; i++) if(this.coordsTable[y+i][x] != 0) return 1;
-      for (let i = 0; i < l; i++) this.coordsTable[y+i][x] = ship.key;
+      for (let i = 0; i < l; i++) {
+        this.coordsTable[y+i][x] = ship.key;
+        ship.setCoords([x, y+i])
+      }
     }
     else if (orient == 1) {
       if (x + l > 10) return 1;
       for(let i = 0; i < l; i++) if(this.coordsTable[y][x+i] != 0) return 1;
-      for (let i = 0; i < l; i++) this.coordsTable[y][x+i] = ship.key;
+      for (let i = 0; i < l; i++) {
+        this.coordsTable[y][x+i] = ship.key;
+        ship.setCoords([x+i, y])
+      }
     }
     this.ships.push(ship)
     return 0;
@@ -57,7 +67,10 @@ class Gameboard {
     }
     this.coordsTable[y][x] = 'h'
     attackedShip.hit();
-    if (attackedShip.isSunk()) this.coordsTable[y][x] = 's'
+    if (attackedShip.isSunk()) {
+      this.coordsTable[y][x] = 's'
+      this.markSunked()
+    }
   }
   getTable() {
     return this.coordsTable;
@@ -72,6 +85,14 @@ class Gameboard {
     const isOk = this.receiveAttack(x, y);
     if(isOk == 1) this.randomAtt(gb)
   }
+  markSunked() {
+    const sunkedShips = this.ships.filter(ship => ship.sunkState == true)
+    sunkedShips.forEach(sunkedShip => {
+      for(let i = 0; i < sunkedShip.length; i++) {
+        this.coordsTable[sunkedShip.coords[i][1]][sunkedShip.coords[i][0]] = 's'
+      }
+    })    
+  }
 }
 
 // get the html nodes
@@ -84,6 +105,9 @@ const orientBtn = document.querySelector('.orient')
 const leftgb = document.querySelector('.leftGB');
 const rightGB = document.querySelector('.rightGB')
 
+const leftOl = document.querySelector('.left-overlay')
+const rightOl = document.querySelector('.right-overlay')
+
 const vsC = document.querySelector('.vsC');
 const vsP = document.querySelector('.vsP');
 
@@ -94,18 +118,16 @@ btns.forEach(btn => {
 
 orientBtn.addEventListener('click', () => switchOrient())
 
-//create gameboard objects and 10x10 grid
 let gameboard1;
 let gameboard2;
 
-// indicate that player starts
 let playerTurn;
 
-// create arrays and populate them
 let ships1;
 let ships2;
 
 init()
+
 function init() {
   gbs.classList.add('unvisible');
   gameoverMenu.classList.add('unvisible');
@@ -159,9 +181,9 @@ function launchSingleplayer() {
 // Shared functions
 function createShips(ships) {
   let j = 1;
-  for (let i = 0; i < 4; i++) ships.push(new Ship(2, j++));
+  //for (let i = 0; i < 4; i++) ships.push(new Ship(2, j++));
   //for (let i = 0; i < 4; i++) ships.push(new Ship(3));
-  for (let i = 0; i < 3; i++) ships.push(new Ship(3, j++));
+  //for (let i = 0; i < 3; i++) ships.push(new Ship(3, j++));
   for (let i = 0; i < 2; i++) ships.push(new Ship(4, j++));
   ships.push(new Ship(5, j++));
 }
@@ -171,8 +193,8 @@ const renderGB = (gbSide, table, gb) => {
     item.forEach((element, ind) => {
       const thing = document.createElement('div');
       thing.classList.add(`cell-${gb.name}`)
-      thing.textContent = element
-      if (element >= 1) thing.style.cssText = 'background-color: green;'
+      //thing.textContent = element
+      //if (element >= 1) thing.style.cssText = 'background-color: green;'
       gbSide.appendChild(thing)
       thing.addEventListener('click', () => handleClick(ind, index), {once: true})
     })
@@ -187,8 +209,8 @@ function reRender(table, gbNum) {
       if (element == 'h') cells[i].style.cssText = 'background-color: orange;'
       if (element == 's') cells[i].style.cssText = 'background-color: red;'
       if (element == 'm') cells[i].style.cssText = 'background-color: black;'
-      if (element >= 1) cells[i].style.cssText = 'background-color: green;'
-      cells[i].textContent = element
+      if (gbNum == 1) if (element >= 1) cells[i].style.cssText = 'background-color: green;'
+      //cells[i].textContent = element
       i++;
     })
   })
@@ -227,7 +249,7 @@ const restartGame = () => init()
 
 function showGameoverMenu(winner) {
   gameoverMenu.classList.remove('unvisible');
-  gbs.classList.add('unvisible')
+  //gbs.classList.add('unvisible')
   winnerText.textContent = winner ? 'Player wins' : 'Computer wins';
 }
 
@@ -244,12 +266,13 @@ function renderrr(gbSide, gbName) {
       const thing = document.createElement('div');
       thing.classList.add(`cell-${gbName}`)
       gbSide.appendChild(thing)
-      thing.addEventListener('click', () => placeOnBoard(j, i), {once: true})
+      thing.addEventListener('click', () => placeOnBoard(j, i))
     }
   }
 }
 function placeOnBoard(x, y) {
   if(gameboard1.placeShip(selectedShip, x, y, selectedOrientation) == 1) return 1;
+  else if(selectedShip == '') return 1;
   const ind = ships1.findIndex(ship => ship.key == selectedShip.key)
   ships1.splice(ind, 1)
   if (ships1.length == 0) startGame()
@@ -269,9 +292,13 @@ function renderShipChooseMenu() {
   ships1.forEach(ship => {
     const shipDiv = document.createElement('div');
     shipDiv.classList.add('ship')
-    shipDiv.style.cssText = `width: ${ship.length*10}px;`
-    shipDiv.textContent = `length: ${ship.length}`
+    shipDiv.style.cssText = `width: ${ship.length*40}px; grid-template-columns: repeat(${ship.length}, auto);`
     ships.appendChild(shipDiv)
+    for(let i = 0; i < ship.length; i++) {
+      const grid = document.createElement('div');
+      grid.classList.add('shipElement')
+      shipDiv.appendChild(grid)
+    }
     shipDiv.addEventListener('click', () => {
       const shipss = document.querySelectorAll('.selectedShip')
       shipss.forEach(selShip => selShip.classList.remove('selectedShip'))
