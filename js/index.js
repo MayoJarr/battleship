@@ -74,9 +74,111 @@ class Gameboard {
   }
 }
 
+// get the html nodes
+const gbs = document.querySelector('.game');
+const welcomeMenu = document.querySelector('.welcomeMenu');
+const gameoverMenu = document.querySelector('.gameoverMenu');
+const winnerText = document.querySelector('.winner')
+const ships = document.querySelector('.ships')
+const orientBtn = document.querySelector('.orient')
+const leftgb = document.querySelector('.leftGB');
+const rightGB = document.querySelector('.rightGB')
+
+const vsC = document.querySelector('.vsC');
+const vsP = document.querySelector('.vsP');
+
+const btns = document.querySelectorAll('.btn');
+btns.forEach(btn => {
+  btn.addEventListener('click', handleBtnClick)
+})
+
+orientBtn.addEventListener('click', () => switchOrient())
+
+//create gameboard objects and 10x10 grid
+let gameboard1;
+let gameboard2;
+
+// indicate that player starts
+let playerTurn;
+
+// create arrays and populate them
+let ships1;
+let ships2;
+
+// get the grids from gb objects and render them on screen
+//const gb1 = gameboard1.getTable()
+//const gb2 = gameboard2.getTable()
+//renderrr(leftgb, gameboard1.getName())
+//renderrr(rightGB, gameboard2.getName())
+
+// render the menu with ships for placement
 
 
 
+
+// pseudo code
+// show welcome
+// choose mode
+// if vs ai 
+// player places ships and ai randomize their ships
+// game
+// if vs player
+// let players place ships
+// game
+// gameOver
+
+init()
+function init() {
+  gbs.classList.add('unvisible');
+  gameoverMenu.classList.add('unvisible');
+  welcomeMenu.classList.remove('unvisible');
+  gameboard1 = new Gameboard(1);
+  gameboard2 = new Gameboard(2)
+  gameboard1.makeBoard()
+  gameboard2.makeBoard()
+  playerTurn = true;
+  ships1 = []
+  ships2 = []
+  createShips(ships1)
+  createShips(ships2)
+  ships.textContent = ''
+}
+function startGame() {
+  leftgb.textContent = ''
+  rightGB.textContent = ''
+  const gb1 = gameboard1.getTable()
+  const gb2 = gameboard2.getTable()
+  placeShips(ships2, gameboard2)
+  renderGB(leftgb, gb1, gameboard1)
+  renderGB(rightGB, gb2, gameboard2)
+}
+function placingShips() {
+  leftgb.textContent = ''
+  rightGB.textContent = ''
+  renderrr(leftgb, gameboard1.getName())
+  renderrr(rightGB, gameboard2.getName())
+  renderShipChooseMenu(ships1)
+}
+
+// welcome menu
+
+function handleBtnClick(e) {
+  if(e.target.dataset.func == 'c') launchSingleplayer()
+  else if(e.target.dataset.func == 'p') launchVsPlayer()
+  else if(e.target.dataset.func == 'r') restartGame()
+}
+function showGbs() {
+  gameoverMenu.classList.add('unvisible')
+  welcomeMenu.classList.add('unvisible')
+  gbs.classList.remove('unvisible')
+}
+
+function launchSingleplayer() {
+  showGbs()
+  placingShips()
+}
+
+// Shared functions
 function createShips(ships) {
   let j = 1;
   for (let i = 0; i < 4; i++) ships.push(new Ship(2, j++));
@@ -98,14 +200,71 @@ const renderGB = (gbSide, table, gb) => {
     })
   })
 }
+
+function reRender(table, gbNum) {
+  const cells = document.querySelectorAll(`.cell-${gbNum}`)
+  let i = 0;
+  table.forEach(item => {
+    item.forEach(element => {
+      if (element == 'h') cells[i].style.cssText = 'background-color: orange;'
+      if (element == 's') cells[i].style.cssText = 'background-color: red;'
+      if (element == 'm') cells[i].style.cssText = 'background-color: black;'
+      if (element >= 1) cells[i].style.cssText = 'background-color: green;'
+      cells[i].textContent = element
+      i++;
+    })
+  })
+  let whichGB = gbNum == 1 ? gameboard1 : gameboard2
+  if(whichGB.areAllSunked() == true) showGameoverMenu(playerTurn);
+}
+
+// Single player mode functions
+// Single player mode functions
+// Single player mode functions
+
+function placeShips(ships, gb) {
+  ships.forEach(ship => placeShip(ship, gb))
+}
+function placeShip(ship, gb) {
+  const x = Math.floor(Math.random() * 10);
+  const y = Math.floor(Math.random() * 10);
+  const orient = Math.floor(Math.random() * 2);
+  const isOk = gb.placeShip(ship, x, y, orient);
+  if (isOk == 1) placeShip(ship, gb)
+  return 0;
+}
+function handleClick(x,y) {
+  gameboard2.receiveAttack(x,y)
+  gameboard1.randomAtt()
+  reRender(gameboard1.getTable(), gameboard1.getName())
+  reRender(gameboard2.getTable(), gameboard2.getName())
+}
+
+// Two Players mode functions
+
+
+// game over menu
+
+const restartGame = () => init()
+
+function showGameoverMenu(winner) {
+  gameoverMenu.classList.remove('unvisible');
+  gbs.classList.add('unvisible')
+  winnerText.textContent = winner ? 'Player wins' : 'Computer wins';
+}
+
+// placing ships functions
+// placing ships functions
+// placing ships functions
+
 let selectedShip
 let selectedOrientation = 0;
 
-function renderrr(gbSide, table, gb) {
+function renderrr(gbSide, gbName) {
   for(let i = 0; i < 10; i++) {
     for (let j = 0; j < 10; j++) {
       const thing = document.createElement('div');
-      thing.classList.add(`cell-${gb.name}`)
+      thing.classList.add(`cell-${gbName}`)
       gbSide.appendChild(thing)
       thing.addEventListener('click', () => placeOnBoard(j, i), {once: true})
     }
@@ -127,129 +286,6 @@ function shipGoDark() {
 }
 function chooseShip(ship) {
   selectedShip = ship
-}
-function handleClick(x,y) {
-  gameboard2.receiveAttack(x,y)
-  gameboard1.randomAtt()
-  reRender(gameboard1.getTable(), gameboard1.getName())
-  reRender(gameboard2.getTable(), gameboard2.getName())
-}
-function reRender(table, gbNum) {
-  const cells = document.querySelectorAll(`.cell-${gbNum}`)
-  let i = 0;
-  table.forEach(item => {
-    item.forEach(element => {
-      if (element == 'h') cells[i].style.cssText = 'background-color: orange;'
-      if (element == 's') cells[i].style.cssText = 'background-color: red;'
-      if (element == 'm') cells[i].style.cssText = 'background-color: black;'
-      if (element >= 1) cells[i].style.cssText = 'background-color: green;'
-      cells[i].textContent = element
-      i++;
-    })
-  })
-  let whichGB = gbNum == 1 ? gameboard1 : gameboard2
-  if(whichGB.areAllSunked() == true) showGameoverMenu(playerTurn);
-}
-
-function placeShips(ships, gb) {
-  ships.forEach(ship => placeShip(ship, gb))
-}
-function placeShip(ship, gb) {
-  const x = Math.floor(Math.random() * 10);
-  const y = Math.floor(Math.random() * 10);
-  const orient = Math.floor(Math.random() * 2);
-  const isOk = gb.placeShip(ship, x, y, orient);
-  if (isOk == 1) placeShip(ship, gb)
-  return 0;
-}
-
-
-const gbs = document.querySelector('.game');
-const welcomeMenu = document.querySelector('.welcomeMenu');
-const gameoverMenu = document.querySelector('.gameoverMenu');
-const winnerText = document.querySelector('.winner')
-const ships = document.querySelector('.ships')
-const orientBtn = document.querySelector('.orient')
-
-const leftgb = document.querySelector('.leftGB');
-const rightGB = document.querySelector('.rightGB')
-
-gbs.classList.add('unvisible')
-gameoverMenu.classList.add('unvisible');
-//welcomeMenu.classList.add('unvisible')
-orientBtn.addEventListener('click', () => switchOrient())
-
-let gameboard1 = new Gameboard(1);
-let gameboard2 = new Gameboard(2);
-gameboard1.makeBoard()
-gameboard2.makeBoard()
-let playerTurn = true;
-
-  const ships1 = [];
-  const ships2 = [];
-
-  const gb1 = gameboard1.getTable()
-  const gb2 = gameboard2.getTable()
-  //renderForPlacement(leftgb, gb1, gameboard1)
-  //renderForPlacement(rightGB, gb2, gameboard2)
-  renderrr(leftgb, gb1, gameboard1)
-  renderrr(rightGB, gb2, gameboard2)
-
-  createShips(ships1)
-  createShips(ships2)
-
-  renderShipChooseMenu(ships1)
-
-function startGame() {
-  leftgb.textContent = ''
-  rightGB.textContent = ''
-  const gb1 = gameboard1.getTable()
-  const gb2 = gameboard2.getTable()
-  //createShips(ships1)
-  createShips(ships2)
-  //placeShips(ships1, gameboard1)
-  placeShips(ships2, gameboard2)
-  renderGB(leftgb, gb1, gameboard1)
-  renderGB(rightGB, gb2, gameboard2)
-}
-
-const vsC = document.querySelector('.vsC');
-const vsP = document.querySelector('.vsP');
-
-const btns = document.querySelectorAll('.btn');
-btns.forEach(btn => {
-  btn.addEventListener('click', handleBtnClick)
-})
-function handleBtnClick(e) {
-  if(e.target.dataset.func == 'c') launchSingleplayer()
-  else if(e.target.dataset.func == 'p') launchVsPlayer()
-  else if(e.target.dataset.func == 'r') restartGame()
-}
-function showGbs() {
-  gameoverMenu.classList.add('unvisible')
-  welcomeMenu.classList.add('unvisible')
-  gbs.classList.remove('unvisible')
-}
-function showGameoverMenu(winner) {
-  gameoverMenu.classList.remove('unvisible');
-  gbs.classList.add('unvisible')
-  winnerText.textContent = winner ? 'Player wins' : 'Computer wins';
-}
-function launchSingleplayer() {
-  showGbs()
-  startGame()
-}
-function restartGame() {
-  leftgb.textContent = ''
-  rightGB.textContent = ''
-  gameboard1 = new Gameboard(1)
-  gameboard2 = new Gameboard(2)
-  gameboard1.makeBoard()
-  gameboard2.makeBoard()
-  playerTurn = true;
-  startGame()
-  gbs.classList.remove('unvisible');
-  gameoverMenu.classList.add('unvisible');
 }
 function renderShipChooseMenu() {
   ships1.forEach(ship => {
