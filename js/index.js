@@ -105,28 +105,6 @@ let playerTurn;
 let ships1;
 let ships2;
 
-// get the grids from gb objects and render them on screen
-//const gb1 = gameboard1.getTable()
-//const gb2 = gameboard2.getTable()
-//renderrr(leftgb, gameboard1.getName())
-//renderrr(rightGB, gameboard2.getName())
-
-// render the menu with ships for placement
-
-
-
-
-// pseudo code
-// show welcome
-// choose mode
-// if vs ai 
-// player places ships and ai randomize their ships
-// game
-// if vs player
-// let players place ships
-// game
-// gameOver
-
 init()
 function init() {
   gbs.classList.add('unvisible');
