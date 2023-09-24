@@ -177,13 +177,17 @@ function launchSingleplayer() {
   showGbs()
   placingShips()
 }
+function launchVsPlayer() {
+  alert('not available yet')
+
+}
 
 // Shared functions
 function createShips(ships) {
   let j = 1;
-  //for (let i = 0; i < 4; i++) ships.push(new Ship(2, j++));
+  for (let i = 0; i < 4; i++) ships.push(new Ship(2, j++));
   //for (let i = 0; i < 4; i++) ships.push(new Ship(3));
-  //for (let i = 0; i < 3; i++) ships.push(new Ship(3, j++));
+  for (let i = 0; i < 3; i++) ships.push(new Ship(3, j++));
   for (let i = 0; i < 2; i++) ships.push(new Ship(4, j++));
   ships.push(new Ship(5, j++));
 }
@@ -311,9 +315,23 @@ function switchOrient() {
   if (selectedOrientation == 1) {
     selectedOrientation = 0
     orientBtn.textContent = 'y'
+    switchShipsTo('y')
   }
   else if (selectedOrientation == 0) {
     selectedOrientation = 1
     orientBtn.textContent = 'x'
+    switchShipsTo('x')
   }
+}
+let shipsss
+function switchShipsTo(orient) {
+  shipsss = document.querySelectorAll('.ship')
+  if (orient == 'y') shipsss.forEach(ship => {
+    ship.classList.remove('x')
+    ship.classList.add('y')
+  })
+  else if (orient == 'x') shipsss.forEach(ship => {
+    ship.classList.remove('y')
+    ship.classList.add('x')
+  })
 }

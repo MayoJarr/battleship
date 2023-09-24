@@ -75,6 +75,7 @@ body {
     background-color: red;
     margin: 10px;
     display: grid;
+    transform: rotate(90deg);
 }
 .shipElement {
     border: 1px solid #fff;
@@ -88,4 +89,10 @@ body {
 .placedShip {
     background-color: black;
     pointer-events: none;
+}
+.y {
+    transform: rotate(90deg);
+}
+.x {
+    transform: rotate(0);
 }
