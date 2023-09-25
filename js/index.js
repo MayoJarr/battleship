@@ -63,14 +63,16 @@ class Gameboard {
     let attackedShip = this.ships.find(ship => ship.key == this.coordsTable[y][x])
     if (attackedShip == undefined) {
       this.coordsTable[y][x] = 'm'
-      return
+      return {hit: 'm', x, y}
     }
     this.coordsTable[y][x] = 'h'
     attackedShip.hit();
     if (attackedShip.isSunk()) {
       this.coordsTable[y][x] = 's'
       this.markSunked()
+      return {hit: 's', x, y}
     }
+    return {hit:'h', x, y}
   }
   getTable() {
     return this.coordsTable;
@@ -84,6 +86,7 @@ class Gameboard {
     const y = Math.floor(Math.random() * 10);
     const isOk = this.receiveAttack(x, y);
     if(isOk == 1) this.randomAtt(gb)
+    return isOk
   }
   markSunked() {
     const sunkedShips = this.ships.filter(ship => ship.sunkState == true)
@@ -185,9 +188,9 @@ function launchVsPlayer() {
 // Shared functions
 function createShips(ships) {
   let j = 1;
-  for (let i = 0; i < 4; i++) ships.push(new Ship(2, j++));
+  //for (let i = 0; i < 4; i++) ships.push(new Ship(2, j++));
   //for (let i = 0; i < 4; i++) ships.push(new Ship(3));
-  for (let i = 0; i < 3; i++) ships.push(new Ship(3, j++));
+  //for (let i = 0; i < 3; i++) ships.push(new Ship(3, j++));
   for (let i = 0; i < 2; i++) ships.push(new Ship(4, j++));
   ships.push(new Ship(5, j++));
 }
@@ -237,12 +240,62 @@ function placeShip(ship, gb) {
   if (isOk == 1) placeShip(ship, gb)
   return 0;
 }
+//  random ai shot
+let firstHit = 'r'
+let lastHit
+let nextHit
+let axis
 function handleClick(x,y) {
   gameboard2.receiveAttack(x,y)
-  gameboard1.randomAtt()
+  handleAiAttack();
   reRender(gameboard1.getTable(), gameboard1.getName())
   reRender(gameboard2.getTable(), gameboard2.getName())
 }
+function handleAiAttack() {
+  if (firstHit != 'r') sentSimilarAttack()
+  else {
+    const isOk = gameboard1.randomAtt()
+    if (isOk.hit == 'h') firstHit = [isOk.x, isOk.y]
+    else if (isOk.hit == 'm' || isOk.hit == 's') firstHit = 'r'
+  }
+}
+function sentSimilarAttack() {
+  if (lastHit.hit == 'h') {
+    
+  }
+  const goXorY = Math.floor(Math.random() * 2);
+  const goPlusorMinus = Math.floor(Math.random() * 2);
+  let {x, y} = {x: firstHit[0], y: firstHit[1]}
+  if (goXorY == 1 && goPlusorMinus == 0) y -= 1
+  else if (goXorY == 1 && goPlusorMinus == 1) y += 1
+  else if (goXorY == 0 && goPlusorMinus == 0) x -= 1
+  else if (goXorY == 0 && goPlusorMinus == 1) x += 1
+  nextHit = gameboard1.receiveAttack(x, y)
+  lastHit = nextHit;
+  if (nextHit.hit == 'h') {
+    console.log({firstHit, nextHit})
+    if (firstHit[0] == nextHit.x) axis = 'y'
+    else if (firstHit[1] == nextHit.y) axis = 'x'
+  }
+  console.log({x,y, nextHit})
+  //if ()
+  //if (nextHit == 1) gameboard1.randomAtt()
+  //if (nextHit == 'h') console.log({x,y, lastHit})
+  //if (nextHit == 'h') lastHit = [nextHit.x, nextHit.y]
+  reRender(gameboard1.getTable(), gameboard1.getName()) 
+}
+// psudo code
+/* 
+shot random
+if miss shot again
+if hit shot random around the hit if hit go back
+
+x y:
+x+1 y
+x-1 y
+x y+1
+x y-1
+*/
 
 // Two Players mode functions
 
