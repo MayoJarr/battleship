@@ -334,6 +334,14 @@ function placeOnBoard(x, y) {
   selectedShip = ''
   reRender(gameboard1.getTable(), 1)
   shipGoDark();
+  autoSelectNextShip()
+}
+function autoSelectNextShip() {
+  chooseShip(ships1[0])
+  const shipNodes = Array.from(document.querySelectorAll('.ship'))
+  const ind = shipNodes.findIndex(ship => ship.className == 'ship')
+  if (ind < 0) return 'no more ships available'
+  shipNodes[ind].classList.add('selectedShip')
 }
 function shipGoDark() {
   const selectedShipNode = document.querySelector('.selectedShip')
