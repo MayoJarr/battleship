@@ -242,9 +242,11 @@ function placeShip(ship, gb) {
 }
 //  random ai shot
 let firstHit = 'r'
-let lastHit
-let nextHit
+let lastHit = {hit: 'm'}
 let axis
+let proposedAttack = 'r'
+let rAttack
+let hit
 function handleClick(x,y) {
   gameboard2.receiveAttack(x,y)
   handleAiAttack();
@@ -252,50 +254,46 @@ function handleClick(x,y) {
   reRender(gameboard2.getTable(), gameboard2.getName())
 }
 function handleAiAttack() {
-  if (firstHit != 'r') sentSimilarAttack()
-  else {
-    const isOk = gameboard1.randomAtt()
-    if (isOk.hit == 'h') firstHit = [isOk.x, isOk.y]
-    else if (isOk.hit == 'm' || isOk.hit == 's') firstHit = 'r'
+  if (proposedAttack == 'r') {
+    rAttack = gameboard1.randomAtt()
+    console.log(rAttack)
+    if (rAttack.hit == 'h') proposedAttack = 'findAxis'
   }
-}
-function sentSimilarAttack() {
-  if (lastHit.hit == 'h') {
-    
+  else if (proposedAttack == 'findAxis') {
+    const whereTohit = Math.floor(Math.random() * 4);
+    switch(whereTohit) {
+      case 0:
+        hit = gameboard1.receiveAttack(rAttack.x+1, rAttack.y) 
+        break;
+      case 1:
+        hit = gameboard1.receiveAttack(rAttack.x-1, rAttack.y)
+        break;
+      case 2:
+        hit = gameboard1.receiveAttack(rAttack.x, rAttack.y + 1)
+        break;
+      case 3:
+        hit = gameboard1.receiveAttack(rAttack.x, rAttack.y -1 )
+        break;
+    }
+    if (hit.hit == 'h') {
+      console.log({hit, rAttack})
+      if (hit.x == rAttack.x) {
+        proposedAttack = 'hitAxis'
+        axis = 'y'
+      }
+      else if (hit.y == rAttack.y) {
+        proposedAttack = 'hitAxis'
+        axis = 'x'
+      }
+    }
+    if (hit == 1) console.log('error')
   }
-  const goXorY = Math.floor(Math.random() * 2);
-  const goPlusorMinus = Math.floor(Math.random() * 2);
-  let {x, y} = {x: firstHit[0], y: firstHit[1]}
-  if (goXorY == 1 && goPlusorMinus == 0) y -= 1
-  else if (goXorY == 1 && goPlusorMinus == 1) y += 1
-  else if (goXorY == 0 && goPlusorMinus == 0) x -= 1
-  else if (goXorY == 0 && goPlusorMinus == 1) x += 1
-  nextHit = gameboard1.receiveAttack(x, y)
-  lastHit = nextHit;
-  if (nextHit.hit == 'h') {
-    console.log({firstHit, nextHit})
-    if (firstHit[0] == nextHit.x) axis = 'y'
-    else if (firstHit[1] == nextHit.y) axis = 'x'
-  }
-  console.log({x,y, nextHit})
-  //if ()
-  //if (nextHit == 1) gameboard1.randomAtt()
-  //if (nextHit == 'h') console.log({x,y, lastHit})
-  //if (nextHit == 'h') lastHit = [nextHit.x, nextHit.y]
-  reRender(gameboard1.getTable(), gameboard1.getName()) 
-}
-// psudo code
-/* 
-shot random
-if miss shot again
-if hit shot random around the hit if hit go back
+  else if (proposedAttack == 'hitAxis') {
+    const whereToHit = Math.floor(Math.random() * 2);
 
-x y:
-x+1 y
-x-1 y
-x y+1
-x y-1
-*/
+  }
+}
+let recCounter = 0
 
 // Two Players mode functions
 
