@@ -26,6 +26,10 @@ class Gameboard {
   }
   coordsTable = [];
   ships = [];
+  recevedShots = [];
+  getShots() {
+    return this.recevedShots
+  }
   getName() {
     return this.name
   }
@@ -59,6 +63,7 @@ class Gameboard {
     return 0;
   }
   receiveAttack(x,y) {
+    this.recevedShots.push({x,y})
     if(this.coordsTable[y][x] == 'm' || this.coordsTable[y][x] == 'h' || this.coordsTable[y][x] == 's') return 1;
     let attackedShip = this.ships.find(ship => ship.key == this.coordsTable[y][x])
     if (attackedShip == undefined) {
@@ -188,9 +193,9 @@ function launchVsPlayer() {
 // Shared functions
 function createShips(ships) {
   let j = 1;
-  //for (let i = 0; i < 4; i++) ships.push(new Ship(2, j++));
+  for (let i = 0; i < 4; i++) ships.push(new Ship(2, j++));
   //for (let i = 0; i < 4; i++) ships.push(new Ship(3));
-  //for (let i = 0; i < 3; i++) ships.push(new Ship(3, j++));
+  for (let i = 0; i < 3; i++) ships.push(new Ship(3, j++));
   for (let i = 0; i < 2; i++) ships.push(new Ship(4, j++));
   ships.push(new Ship(5, j++));
 }
@@ -241,60 +246,43 @@ function placeShip(ship, gb) {
   return 0;
 }
 //  random ai shot
-let firstHit = 'r'
-let lastHit = {hit: 'm'}
-let axis
-let proposedAttack = 'r'
-let rAttack
-let hit
 function handleClick(x,y) {
   gameboard2.receiveAttack(x,y)
-  handleAiAttack();
+  huntTarget()
   reRender(gameboard1.getTable(), gameboard1.getName())
   reRender(gameboard2.getTable(), gameboard2.getName())
 }
-function handleAiAttack() {
-  if (proposedAttack == 'r') {
-    rAttack = gameboard1.randomAtt()
-    console.log(rAttack)
-    if (rAttack.hit == 'h') proposedAttack = 'findAxis'
-  }
-  else if (proposedAttack == 'findAxis') {
-    const whereTohit = Math.floor(Math.random() * 4);
-    switch(whereTohit) {
-      case 0:
-        hit = gameboard1.receiveAttack(rAttack.x+1, rAttack.y) 
-        break;
-      case 1:
-        hit = gameboard1.receiveAttack(rAttack.x-1, rAttack.y)
-        break;
-      case 2:
-        hit = gameboard1.receiveAttack(rAttack.x, rAttack.y + 1)
-        break;
-      case 3:
-        hit = gameboard1.receiveAttack(rAttack.x, rAttack.y -1 )
-        break;
-    }
-    if (hit.hit == 'h') {
-      console.log({hit, rAttack})
-      if (hit.x == rAttack.x) {
-        proposedAttack = 'hitAxis'
-        axis = 'y'
-      }
-      else if (hit.y == rAttack.y) {
-        proposedAttack = 'hitAxis'
-        axis = 'x'
-      }
-    }
-    if (hit == 1) console.log('error')
-  }
-  else if (proposedAttack == 'hitAxis') {
-    const whereToHit = Math.floor(Math.random() * 2);
-
-  }
+function getRandom() {
+  const x = Math.floor(Math.random() * 10);
+  const y = Math.floor(Math.random() * 10);
+  return {x, y}
 }
-let recCounter = 0
-
+let targets = []
+let potentialTargets = []
+function huntTarget() {
+  let table = gameboard1.coordsTable
+  if (targets.length == 0) ({x, y} = getRandom())
+  else{
+    ({x,y} = targets.pop())
+  }
+  if (table[y][x] > 0) {
+    potentialTargets = [{x:x+1, y:y}, {x:x, y:y+1}, {x:x-1, y:y}, {x:x, y:y-1}]
+    potentialTargets.forEach(coord => {
+      const a = coord.x
+      const b = coord.y
+      if (0 <= a && a <= 9 && 0 <= b && b <= 9 && !targets.includes({a,b}) && !gameboard1.getShots().includes({a,b})) {
+          targets.push({x:a,y:b})
+        }
+    })
+  }
+  let ok = gameboard1.receiveAttack(x,y)
+  console.log(ok)
+  if (ok == 1) {
+    huntTarget()
+  }
+  reRender(gameboard1.getTable(), 1)
+  return {x,y}
+}
 // Two Players mode functions
 
 
