@@ -14,8 +14,8 @@ body {
 }
 .gb {
     border: 2px solid #fff;
-    width: 40vw;
-    height: 40vw;
+    width: 30vw;
+    height: 30vw;
     display: grid;
     grid-template-columns: repeat(10, auto);
     grid-gap: 0;
@@ -82,6 +82,7 @@ body {
 }
 .ships {
     display: flex;
+    width: 50%;
 }
 .selectedShip {
     border: 2px solid #fff;

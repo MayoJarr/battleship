@@ -26,6 +26,10 @@ class Gameboard {
   }
   coordsTable = [];
   ships = [];
+  recevedShots = [];
+  getShots() {
+    return this.recevedShots
+  }
   getName() {
     return this.name
   }
@@ -59,18 +63,21 @@ class Gameboard {
     return 0;
   }
   receiveAttack(x,y) {
+    this.recevedShots.push({x,y})
     if(this.coordsTable[y][x] == 'm' || this.coordsTable[y][x] == 'h' || this.coordsTable[y][x] == 's') return 1;
     let attackedShip = this.ships.find(ship => ship.key == this.coordsTable[y][x])
     if (attackedShip == undefined) {
       this.coordsTable[y][x] = 'm'
-      return
+      return {hit: 'm', x, y}
     }
     this.coordsTable[y][x] = 'h'
     attackedShip.hit();
     if (attackedShip.isSunk()) {
       this.coordsTable[y][x] = 's'
       this.markSunked()
+      return {hit: 's', x, y}
     }
+    return {hit:'h', x, y}
   }
   getTable() {
     return this.coordsTable;
@@ -84,6 +91,7 @@ class Gameboard {
     const y = Math.floor(Math.random() * 10);
     const isOk = this.receiveAttack(x, y);
     if(isOk == 1) this.randomAtt(gb)
+    return isOk
   }
   markSunked() {
     const sunkedShips = this.ships.filter(ship => ship.sunkState == true)
@@ -237,13 +245,44 @@ function placeShip(ship, gb) {
   if (isOk == 1) placeShip(ship, gb)
   return 0;
 }
+//  random ai shot
 function handleClick(x,y) {
   gameboard2.receiveAttack(x,y)
-  gameboard1.randomAtt()
+  huntTarget()
   reRender(gameboard1.getTable(), gameboard1.getName())
   reRender(gameboard2.getTable(), gameboard2.getName())
 }
-
+function getRandom() {
+  const x = Math.floor(Math.random() * 10);
+  const y = Math.floor(Math.random() * 10);
+  return {x, y}
+}
+let targets = []
+let potentialTargets = []
+function huntTarget() {
+  let table = gameboard1.coordsTable
+  if (targets.length == 0) ({x, y} = getRandom())
+  else{
+    ({x,y} = targets.pop())
+  }
+  if (table[y][x] > 0) {
+    potentialTargets = [{x:x+1, y:y}, {x:x, y:y+1}, {x:x-1, y:y}, {x:x, y:y-1}]
+    potentialTargets.forEach(coord => {
+      const a = coord.x
+      const b = coord.y
+      if (0 <= a && a <= 9 && 0 <= b && b <= 9 && !targets.includes({a,b}) && !gameboard1.getShots().includes({a,b})) {
+          targets.push({x:a,y:b})
+        }
+    })
+  }
+  let ok = gameboard1.receiveAttack(x,y)
+  console.log(ok)
+  if (ok == 1) {
+    huntTarget()
+  }
+  reRender(gameboard1.getTable(), 1)
+  return {x,y}
+}
 // Two Players mode functions
 
 
@@ -283,6 +322,14 @@ function placeOnBoard(x, y) {
   selectedShip = ''
   reRender(gameboard1.getTable(), 1)
   shipGoDark();
+  autoSelectNextShip()
+}
+function autoSelectNextShip() {
+  chooseShip(ships1[0])
+  const shipNodes = Array.from(document.querySelectorAll('.ship'))
+  const ind = shipNodes.findIndex(ship => ship.className == 'ship')
+  if (ind < 0) return 'no more ships available'
+  shipNodes[ind].classList.add('selectedShip')
 }
 function shipGoDark() {
   const selectedShipNode = document.querySelector('.selectedShip')
